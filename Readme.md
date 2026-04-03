@@ -15,5 +15,7 @@ Project around the waveshare e-ink display ([13353](https://www.waveshare.com/4.
 ## Deep sleep
 After a display refresh ESP enters in deep sleep for 5 minutes. For the deep sleep to work you need to *connect D0 PIN to the RST PIN*.
 
+*CAUTION*: After connecting D0 - RST PINs you cannot flash a new sketch/firmware. Before that these PINs must be disconnected!!!.
+
 # Initialize
 - copy secrets.example.h to secrets.h and fill in the details

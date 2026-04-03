@@ -41,9 +41,7 @@ struct Forecast
 
 Today today;
 Forecast tomorrow, day2;
-
-int humidity_in = 0;
-int humidity_out = 0;
+String timestamp;
 
 void connectWiFi()
 {
@@ -76,6 +74,8 @@ bool fetchData()
 
     DynamicJsonDocument doc(2048);
     deserializeJson(doc, http.getString());
+
+    timestamp = doc["timestamp"].as<String>();
 
     today.day = doc["today"]["day"].as<String>();
     today.front_temp = doc["today"]["front_temp"];
@@ -125,6 +125,7 @@ void drawUI()
     display.firstPage();
     do
     {
+        display.setTextColor(GxEPD_BLACK);
         display.fillScreen(GxEPD_WHITE);
 
         // HEADER (größere Schrift)
@@ -236,6 +237,10 @@ void drawUI()
         display.setCursor(xTomorrow, yPos);
         display.printf("%.1fmm %d%%", day2.rain_mm, day2.rain_percent);
 
+        display.setCursor(325, 293);
+        display.setTextSize(1);
+        display.print(timestamp);
+
     } while (display.nextPage());
 
     display.hibernate();
@@ -247,7 +252,6 @@ void setup()
 
     display.init();
     display.setRotation(0);
-    display.setTextColor(GxEPD_BLACK);
     display.setFont(NULL);
 
     connectWiFi();
