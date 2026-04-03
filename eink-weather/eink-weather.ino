@@ -5,6 +5,8 @@
 #include <ESP8266HTTPClient.h>
 #include <ArduinoJson.h>
 
+#include "secrets.h"
+
 // PINS
 #define CS 15
 #define DC 12
@@ -13,11 +15,6 @@
 
 GxEPD2_BW<GxEPD2_420_M01, GxEPD2_420_M01::HEIGHT> display(
     GxEPD2_420_M01(CS, DC, RST, BUSY));
-
-// WIFI
-const char *ssid = "***";
-const char *password = "***";
-const char *url = "***";
 
 // DATEN
 struct DayData
@@ -38,7 +35,7 @@ int humidity_out = 0;
 
 void connectWiFi()
 {
-    WiFi.begin(ssid, password);
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     int timeout = 0;
     while (WiFi.status() != WL_CONNECTED && timeout < 30)
     {
@@ -55,7 +52,7 @@ bool fetchData()
     WiFiClient client;
     HTTPClient http;
 
-    http.begin(client, url);
+    http.begin(client, API_URL);
     int code = http.GET();
 
     if (code != 200)
