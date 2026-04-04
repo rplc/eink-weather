@@ -12,11 +12,6 @@ Project around the waveshare e-ink display ([13353](https://www.waveshare.com/4.
 - RST: D2 = GPIO 4
 - BUSY: D1 = GPIO 5
 
-## Deep sleep
-After a display refresh ESP enters in deep sleep for 5 minutes. For the deep sleep to work you need to **connect D0 PIN to the RST PIN**.
-
-**CAUTION**: After connecting D0 - RST PINs you cannot flash a new sketch/firmware. Before that these PINs must be disconnected!!!.
-
 # Initialize
 - copy secrets.example.h to secrets.h and fill in the details
 
@@ -25,31 +20,34 @@ The JSON API/URL should reply with a 200er status code on a GET request with the
 
 ```
 {
+    "prevent_update": false,
     "today": {
-        "day": "03.04.2026 - Friday",
-        "front_temp": 10.9,
-        "front_hum": 52,
-        "back_temp": 11.34,
-        "back_hum": 57.17,
-        "rain_mm": 0,
-        "rain_percent": 20,
-        "pv": 20.299
+        "day": "04.04.2026 - Saturday",
+        "front_temp": 11.7,
+        "front_hum": 94,
+        "back_temp": 12.21,
+        "back_hum": 89.27,
+        "rain_mm": 1,
+        "rain_percent": 70,
+        "pv_forecast": 20.123,
+        "pv_current": "138W",
+        "weather_warning": ""
     },
     "tomorrow": {
-        "day": "Sa (4.4.)",
-        "temp_min": 7.08,
-        "temp_max": 15.1,
-        "rain_mm": 0.6,
-        "rain_percent": 60,
-        "pv": 20.368
-    },
-    "day2":{
         "day": "Su (5.4.)",
-        "temp_min": 4.76,
-        "temp_max": 18.91,
+        "temp_min": 5.78,
+        "temp_max": 18.5,
         "rain_mm": 0,
-        "rain_percent": 20
+        "rain_percent": 20,
+        "pv_forecast": 25.324
     },
-    "timestamp": "03.04. 19:48"
+    "day2": {
+        "day": "Mo (6.4.)",
+        "temp_min": 3.28,
+        "temp_max": 13.38,
+        "rain_mm": 0,
+        "rain_percent": 0
+    },
+    "timestamp": "04.04. 18:53"
 }
 ```

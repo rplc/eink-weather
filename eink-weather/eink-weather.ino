@@ -26,7 +26,9 @@ struct Today
     float back_hum;
     float rain_mm;
     int rain_percent;
-    float pv;
+    float pv_forecast;
+    String pv_current;
+    String weather_warning;
 };
 
 struct Forecast
@@ -36,24 +38,28 @@ struct Forecast
     float temp_max;
     float rain_mm;
     int rain_percent;
-    float pv;
+    float pv_forecast;
 };
 
+boolean preventUpdate;
 Today today;
 Forecast tomorrow, day2;
 String timestamp;
 
-void connectWiFi()
-{
+void ensureWiFi() {
+    if (WiFi.status() == WL_CONNECTED) return;
+
+    Serial.println("Reconnect WLAN...");
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+
     int timeout = 0;
-    while (WiFi.status() != WL_CONNECTED && timeout < 30)
-    {
+    while (WiFi.status() != WL_CONNECTED && timeout < 20) {
         delay(500);
+        Serial.print(".");
         timeout++;
     }
 
-    Serial.println("Wifi connected.");
+    Serial.println(WiFi.status() == WL_CONNECTED ? " OK" : " FAIL");
 }
 
 bool fetchData()
@@ -75,6 +81,7 @@ bool fetchData()
     DynamicJsonDocument doc(2048);
     deserializeJson(doc, http.getString());
 
+    preventUpdate = doc["prevent_update"];
     timestamp = doc["timestamp"].as<String>();
 
     today.day = doc["today"]["day"].as<String>();
@@ -84,21 +91,23 @@ bool fetchData()
     today.back_hum = doc["today"]["back_hum"];
     today.rain_mm = doc["today"]["rain_mm"];
     today.rain_percent = doc["today"]["rain_percent"];
-    today.pv = doc["today"]["pv"];
+    today.pv_forecast = doc["today"]["pv_forecast"];
+    today.pv_current = doc["today"]["pv_current"].as<String>();
+    today.weather_warning = doc["today"]["weather_warning"].as<String>();
 
     tomorrow.day = doc["tomorrow"]["day"].as<String>();
     tomorrow.temp_min = doc["tomorrow"]["temp_min"];
     tomorrow.temp_max = doc["tomorrow"]["temp_max"];
     tomorrow.rain_mm = doc["tomorrow"]["rain_mm"];
     tomorrow.rain_percent = doc["tomorrow"]["rain_percent"];
-    tomorrow.pv = doc["tomorrow"]["pv"];
+    tomorrow.pv_forecast = doc["tomorrow"]["pv_forecast"];
 
     day2.day = doc["day2"]["day"].as<String>();
     day2.temp_min = doc["day2"]["temp_min"];
     day2.temp_max = doc["day2"]["temp_max"];
     day2.rain_mm = doc["day2"]["rain_mm"];
     day2.rain_percent = doc["day2"]["rain_percent"];
-    day2.pv = doc["day2"]["pv"];
+    day2.pv_forecast = doc["day2"]["pv_forecast"];
 
     Serial.println("Data fetched and parsed.");
     return true;
@@ -119,6 +128,11 @@ void drawCenteredText(String text, int y)
 
 void drawUI()
 {
+    if (preventUpdate) {
+        Serial.println("Preventing update via data, no UI to draw.");
+        return;
+    }
+
     Serial.println("Drawing ui.");
     display.setFullWindow();
 
@@ -179,13 +193,25 @@ void drawUI()
 
         display.setCursor(xToday, yPos);
         display.setTextSize(1);
-        display.print("PV Forecast: ");
+        display.printf("PV Forecast %.2fkWh", today.pv_forecast);
         yPos += 15;
 
         display.setTextSize(2);
         display.setCursor(xToday, yPos);
-        display.printf("%.2fkWh", today.pv);
+        display.print(today.pv_current);
         yPos += 30;
+
+        if (today.weather_warning.length() > 0) {
+            display.setCursor(xToday, yPos);
+            display.setTextSize(1);
+            display.print("Caution: ");
+            yPos += 15;
+
+            display.setTextSize(2);
+            display.setCursor(xToday, yPos);
+            display.print(today.weather_warning);
+            yPos += 30;
+        }
 
         // TRENNLINIE VERTIKAL
         display.drawLine(200, 40, 200, 300, GxEPD_BLACK);
@@ -212,7 +238,7 @@ void drawUI()
         yPos += 20;
 
         display.setCursor(xTomorrow, yPos);
-        display.printf("%.2fkWh", tomorrow.pv);
+        display.printf("%.2fkWh", tomorrow.pv_forecast);
 
         // TRENNLINIE HORIZONTAL
         display.drawLine(205, 170, 400, 170, GxEPD_BLACK);
@@ -242,8 +268,6 @@ void drawUI()
         display.print(timestamp);
 
     } while (display.nextPage());
-
-    display.hibernate();
 }
 
 void setup()
@@ -254,14 +278,18 @@ void setup()
     display.setRotation(0);
     display.setFont(NULL);
 
-    connectWiFi();
-
-    if (fetchData())
-    {
-        drawUI();
-    }
-
-    ESP.deepSleep(5 * 60 * 1000000);
+    WiFi.mode(WIFI_STA);
+    ensureWiFi();
 }
 
-void loop() {}
+void loop() {
+    ensureWiFi();
+
+    if (fetchData()) {
+        drawUI();
+    } else {
+        Serial.println("Fehler beim Laden der Daten");
+    }
+
+    delay(5 * 60 * 1000);
+}
