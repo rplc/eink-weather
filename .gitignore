@@ -1,1 +1,3 @@
-eink-weather/secrets.h
+.vscode
+.pio
+platformio.local.ini

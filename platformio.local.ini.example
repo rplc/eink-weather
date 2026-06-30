@@ -1,0 +1,7 @@
+[secrets]
+wifi_ssid       = "***"
+wifi_password   = "***"
+api_url         = "***"
+
+ota_hostname    = "192.168.***.***"
+ota_password    = "***"
