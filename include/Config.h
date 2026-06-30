@@ -12,3 +12,8 @@
 
 // --- Update-Intervall (Millisekunden) ---
 #define UPDATE_INTERVAL_MS (5UL * 60UL * 1000UL)
+
+// --- Partial Updates ---
+// Nach wie vielen Partial-Update-Zyklen erzwingen wir einen kompletten
+// Full-Refresh; 12 Zyklen * 5 Minuten Update-Intervall = 1 Stunde.
+#define FULL_REFRESH_EVERY_N_UPDATES 12
